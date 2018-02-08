@@ -3,6 +3,7 @@ var keys = require('./keys.js');
 var Spotify = require('node-spotify-api');
 var Twitter = require('twitter');
 var request = require('request');
+var fs = require("fs");
 // console.log(keys.omdb.api_key);
 
 var spotify = new Spotify(keys.spotify);
@@ -13,6 +14,21 @@ var args = process.argv;
 
 function showTimeline(tweet) {
   console.log(tweet.created_at + ': ' + tweet.text);
+}
+
+function callSpotify(songName) {
+  spotify.search({ type: 'track', query: songName, limit: 1}, function(err, data) {
+    if ( err ) {
+      console.log('Error occurred: ' + err);
+      return;
+    }
+  console.log(section);
+  console.log('Details for ' + songName + ': \n');
+  console.log('Artist: ' + data.tracks.items[0].album.artists[0].name);
+  console.log('Track: ' + data.tracks.items[0].name);
+  console.log('Preview: '+ data.tracks.items[0].external_urls.spotify);
+  console.log('Album: ' + data.tracks.items[0].album.name);
+});
 }
 
 var command = process.argv[2];
@@ -35,19 +51,8 @@ else if (command === 'spotify-this-song') {
     songName = process.argv[3];
     // artist = '';
   };
+  callSpotify(songName)
 
-    spotify.search({ type: 'track', query: songName, limit: 1}, function(err, data) {
-      if ( err ) {
-        console.log('Error occurred: ' + err);
-        return;
-      }
-    console.log(section);
-    console.log('Details for ' + songName + ': \n');
-    console.log('Artist: ' + data.tracks.items[0].album.artists[0].name);
-    console.log('Track: ' + data.tracks.items[0].name);
-    console.log('Preview: '+ data.tracks.items[0].external_urls.spotify);
-    console.log('Album: ' + data.tracks.items[0].album.name);
-});
 }
 
 else if (command === 'movie-this') {
@@ -93,5 +98,20 @@ else if (command === 'movie-this') {
     actors = JSON.parse(body).Actors;
     displayDetails()
   }
+});
+}
+
+else if (command === 'do-what-it-says') {
+fs.readFile("random.txt", "utf8", function(error, data) {
+  if (error) {
+    return console.log(error);
+  }
+  var dataArr = data.split(",");
+  var randomCommand = dataArr[0];
+  var randomArgument = dataArr[1];
+
+  if (randomCommand === 'spotify-this-song')
+  callSpotify(randomArgument)
+
 });
 }
